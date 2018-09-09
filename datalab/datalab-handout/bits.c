@@ -175,7 +175,9 @@ NOTES:
  *   Rating: 1
  */
 int bitOr(int x, int y) {
-  return 2;
+  // x or y are true if and only if x and y are not both false
+  // Demorgan's Laws
+  return ~((~x) & (~y));
 }
 /* 
  * evenBits - return word with all even-numbered bits set to 1
@@ -184,7 +186,12 @@ int bitOr(int x, int y) {
  *   Rating: 1
  */
 int evenBits(void) {
-  return 2;
+  // 0x55 in binary is 01010101
+  // shift left 8 and expand it to 16 bits long
+  // repeat shift with 16 to get 32 bit word
+  int word = 0x55;
+  word = word | word<<8;
+  return word | word<<16;
 }
 /* 
  * minusOne - return a value of -1 
@@ -193,7 +200,10 @@ int evenBits(void) {
  *   Rating: 1
  */
 int minusOne(void) {
-  return 2;
+  // 0 in binary is 00000000
+  // flip it and it will be 11111111
+  // which is signed and equals -1
+  return ~0;
 }
 /* 
  * allEvenBits - return 1 if all even-numbered bits in word set to 1
@@ -203,7 +213,14 @@ int minusOne(void) {
  *   Rating: 2
  */
 int allEvenBits(int x) {
-  return 2;
+  // First create an all-even-bits-are-1 testing number to compare to x
+  // (x & even) to see where they both match up
+  // ^ (XOR) to compare result and make sure that every one is even
+  // ! to return either 1 or 0 depending on result
+  int even = 0x55;
+  even = even | even<<8;
+  even = even | even<<16;
+  return !((x & even)^even);
 }
 /* 
  * anyOddBit - return 1 if any odd-numbered bit in word set to 1
@@ -213,7 +230,13 @@ int allEvenBits(int x) {
  *   Rating: 2
  */
 int anyOddBit(int x) {
-    return 2;
+  // Create an all-odd-bits-are-1 testing number to compare to x
+  // (x & odd) to see where they both match up
+  // ! twice to turn it into a 1 or 0
+  int odd = 0xAA;
+  odd = odd | odd<<8;
+  odd = odd | odd<<16;
+  return !!(x & odd);
 }
 /* 
  * byteSwap - swaps the nth byte and the mth byte
