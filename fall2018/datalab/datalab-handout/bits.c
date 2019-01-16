@@ -188,7 +188,7 @@ int bitOr(int x, int y) {
 int evenBits(void) {
   // 0x55 in binary is 01010101
   // shift left 8 and expand it to 16 bits long
-  // repeat shift with 16 to get 32 bit word of all even bits
+  // repeat shift with 16 to get 32 bit word
   int word = 0x55;
   word = word | word<<8;
   return word | word<<16;
@@ -213,11 +213,10 @@ int minusOne(void) {
  *   Rating: 2
  */
 int allEvenBits(int x) {
-  // get the 32 bit word with even bits
-  // compare if x has all even bits with the &
-  // XOR on the result of that to check if all bits match the original even num
-  // ! on the final because if it is all even, the XOR would return all 0s so you need to flip it
-  // I would call this to get even but it's against the rules :( int even = evenBits();
+  // First create an all-even-bits-are-1 testing number to compare to x
+  // (x & even) to see where they both match up
+  // ^ (XOR) to compare result and make sure that every one is even
+  // ! to return either 1 or 0 depending on result
   int even = 0x55;
   even = even | even<<8;
   even = even | even<<16;
@@ -231,7 +230,13 @@ int allEvenBits(int x) {
  *   Rating: 2
  */
 int anyOddBit(int x) {
-    return 2;
+  // Create an all-odd-bits-are-1 testing number to compare to x
+  // (x & odd) to see where they both match up
+  // ! twice to turn it into a 1 or 0
+  int odd = 0xAA;
+  odd = odd | odd<<8;
+  odd = odd | odd<<16;
+  return !!(x & odd);
 }
 /* 
  * byteSwap - swaps the nth byte and the mth byte
