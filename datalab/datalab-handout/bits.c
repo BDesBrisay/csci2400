@@ -1,7 +1,7 @@
 /* 
  * CS:APP Data Lab 
  * 
- * <Please put your name and userid here>
+ * Bryce DesBrisay - 107692119
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -274,7 +274,7 @@ int byteSwap(int x, int n, int m) {
  *   Rating: 3
  */
 int addOK(int x, int y) {
-  // checks is there is overflow from the biggest digits, hence the >>31
+  // checks if there is overflow from the biggest digits, hence the >>31
   int firstCheck = !((x>>31) ^ (y>>31));
   // checks if there is any overflow from the addition of the two and
   int secondCheck = ((x+y)>>31) ^ (x>>31);
@@ -412,22 +412,7 @@ int satAdd(int x, int y) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  // mask the sign bit then check if all exponent bits are set to one
-  unsigned absUf = uf & 0x7fffffff;
-
-  // if the frac bits are some value, the number is NaN. Return it.
-  // Otherwise just return the absolute.
-  if ((absUf & 0x7f800000) ^ 0x7f800000) {
-    return absUf;
-  }
-  else {
-    if (absUf << 9) {
-      return uf;
-    }
-    else {
-      return absUf;
-    }
-  }
+  return 2;
 }
 /* 
  * float_f2i - Return bit-level equivalent of expression (int) f
@@ -442,32 +427,7 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  /* mask out the numerator and the exponent. E can be calculated by subtracting
-   * the bias from exponent. The int is then the fraction bit shifted by 23 - E,
-   * test for E = 0 and it is pretty easy to see (will get 1). The direction of the
-   * shift is chosen based on if 23 - exponent is greater than or less than 0. Next, if E is
-   * less than 0 then the int will always be 0. If E is greater than 30 then overflow
-   * will occur. Finally, if the sign is negative return negative with ~(x) + 1, otherwise
-   * return the first calculated value.
-   */
-  unsigned numerator = (uf & 0x7FFFFF) + 0x800000;
-  int exponent = ((uf & 0x7f800000) >> 23) - 127;
-  int eShift = 23 - exponent;
-  unsigned ufti = numerator;
-
-  if(eShift >= 0)
-    ufti = ufti >> eShift;
-  else
-    ufti = ufti << (~eShift + 1);
-
-  if (exponent < 0)
-    return 0;
-  if (exponent > 30)
-    return 0x80000000;
-  if (uf & 0x80000000)
-    return ~ufti + 1;
-  else 
-    return ufti;
+  return 2;
 }
 /* 
  * float_half - Return bit-level equivalent of expression 0.5*f for
@@ -481,30 +441,5 @@ int float_f2i(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_half(unsigned uf) {
-  /* Mask out relevant terms. Chuck out the case where uf is NaN or inf. Now if the exponent
-   * is greater than one then subtracting one will divid uf by 2. If the exponent is less
-   * or equal to one then the frac can simply be shifted over to the right by one to divide
-   * uf by 2. Note that it is odd that the normalized case of 0000 0001 is grouped with the
-   * denormalized cases, but it makes since E is the same for the denormalized and for 
-   * 0000 0001. A rounder value is added in the case that the fraction needs to be rounded to
-   * even. The case occurs when the two least significant bits are both set to 1.
-   */
-  unsigned fraction = uf & 0x7fffff;
-  unsigned exponent = uf & 0x7f800000;
-  unsigned sign = uf & 0x80000000;
-  unsigned rounder = 0;
-
-  if (!((uf & 0x7f800000) ^ 0x7f800000))
-    return uf;
-
-  if (exponent > 0x800000) {
-    return sign + (exponent - 0x800000) + fraction;
-  }
-  else {
-    if ((fraction & 0x3) ^ 0x3)
-      rounder = 0;
-    else
-      rounder = 1;
-    return sign + ((exponent + fraction) >> 1) + rounder;
-  }
+  return 2;
 }
