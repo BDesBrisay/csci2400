@@ -177,6 +177,7 @@ NOTES:
 int bitOr(int x, int y) {
   // x or y are true if and only if x and y are not both false
   // Demorgan's Laws
+  // Turns all 0s into 1s, then compares, then switches them again
   return ~((~x) & (~y));
 }
 /* 
@@ -231,7 +232,13 @@ int allEvenBits(int x) {
  *   Rating: 2
  */
 int anyOddBit(int x) {
-    return 2;
+  // get and odd mask
+  // (x & odd) to see if any of the odd digits are 1
+  // !! double bang to change this to a 1 or zero depending on if there are any odd digits that are 1
+  int odd = 0xAA;
+  odd = odd | odd<<8;
+  odd = odd | odd<<16;
+  return !!(x & odd);
 }
 /* 
  * byteSwap - swaps the nth byte and the mth byte
@@ -243,7 +250,20 @@ int anyOddBit(int x) {
  *  Rating: 2
  */
 int byteSwap(int x, int n, int m) {
-    return 2;
+  int t = 0;
+  // left shift n and m 3 because they have to be between 0 and 3
+  n = n<<3;
+  m = m<<3;
+  // AND compare 0xff to a (right shifted x by n and XOR x>>m)
+  // do this in order to get the difference between the shifted bits
+  // then AND compare it to 0xff to fill remaining bits
+  t = 0xff & ((x>>n) ^ (x>>m));
+  // swap the bits in x based on what you've gotten for t
+  // XOR in order to get the bits that are in t<<n and t<<m into X
+  // XOR instead of OR because we want the changed bits
+  x = x^(t<<n);
+  x = x^(t<<m);
+  return x;
 }
 /* 
  * addOK - Determine if can compute x+y without overflow
@@ -254,7 +274,12 @@ int byteSwap(int x, int n, int m) {
  *   Rating: 3
  */
 int addOK(int x, int y) {
-  return 2;
+  // checks is there is overflow from the biggest digits, hence the >>31
+  int firstCheck = !((x>>31) ^ (y>>31));
+  // checks if there is any overflow from the addition of the two and
+  int secondCheck = ((x+y)>>31) ^ (x>>31);
+  // if both of these checks returns 0 then adding is OK
+  return !(firstCheck & secondCheck);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -264,7 +289,15 @@ int addOK(int x, int y) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  // checks for zero or one
+  // makes if true: -2
+  // makes if false: -1
+  int mask1 = !!x;
+  // makes if true: -1
+  // makes if false: 0
+  int mask2 = ~mask1 + 1;
+  // if mask2 is 0 then (mask2 & y) is 0 so it returns (~mask2 & z)
+  return (mask2 & y) + (~mask2 & z);
 }
 /* 
  * isAsciiDigit - return 1 if 0x30 <= x <= 0x39 (ASCII codes for characters '0' to '9')
@@ -276,7 +309,16 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  // adds the minimum ascii number to it
+  int a = x + (~0x2f);
+  // gets last digit of number to see if it is larger than 0x2f
+  a = a >> 31;
+  // adds maximum ascii number to it
+  int b = 58 + ~x;
+  // gets last digit of number to see if it is less than 0x39
+  b = b >> 31;
+  // returns 1 if both a and b are 0s
+  return !(a|b);
 }
 /* 
  * replaceByte(x,n,c) - Replace byte n in x with c
@@ -288,7 +330,16 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int replaceByte(int x, int n, int c) {
-  return 2;
+  // get all 1s
+  int mask = 0xFF;
+  // shift n because it is between 0 and 3
+  int rep = n << 3;
+  // shift the mask by rep in order to get new mask without old bytes
+  mask = ~(mask << rep);
+  // shift c by rep to get it ready to be inserted
+  c = c << rep;
+  // take out old byte and replace it with new one
+  return (x & mask) | c;
 }
 /* reverseBits - reverse the bits in a 32-bit integer,
               i.e. b0 swaps with b31, b1 with b30, etc
@@ -303,7 +354,23 @@ int replaceByte(int x, int n, int c) {
  *  Rating: 4
  */
 int reverseBits(int x) {
-  return 0;
+  // make it unsigned first
+  unsigned reverse_x = x;
+
+  // create masks for each time you need to reverse the bits
+  int mask_08_switch = 0xFF | (0xFF << 16);
+  int mask_04_switch = mask_08_switch ^ (mask_08_switch << 4);
+  int mask_02_switch = mask_04_switch ^ (mask_04_switch << 2);
+  int mask_01_switch = mask_02_switch ^ (mask_02_switch << 1);
+
+  // reverse the bits at each different bit step (1,2,4,8,16)
+  reverse_x = (reverse_x >> 16) | (reverse_x << 16);
+  reverse_x = ((reverse_x & ~mask_08_switch) >>  8) | ((reverse_x & mask_08_switch) <<  8);
+  reverse_x = ((reverse_x & ~mask_04_switch) >>  4) | ((reverse_x & mask_04_switch) <<  4);
+  reverse_x = ((reverse_x & ~mask_02_switch) >>  2) | ((reverse_x & mask_02_switch) <<  2);
+  reverse_x = ((reverse_x & ~mask_01_switch) >>  1) | ((reverse_x & mask_01_switch) <<  1);
+
+  return reverse_x;
 }
 /*
  * satAdd - adds two numbers but when positive overflow occurs, returns
@@ -316,7 +383,19 @@ int reverseBits(int x) {
  *   Rating: 4
  */
 int satAdd(int x, int y) {
-  return 2;
+  // combination of logic from addOk and conditional
+  // adds the two numbers
+  int xPlusY = x + y;
+  // left shifts by 31 to get negOverflow
+  int negOverflow = 0x1 << 31;
+  // flips negOverflow to get posOverflow
+  int posOverflow = ~negOverflow;
+  // creates a mask of the overflow value if there is one
+  int overflowMask = ((x ^ xPlusY) & (y ^ (xPlusY))) >> 31;
+  // gets whether overflow is positive or negative
+  int signMask = x >> 31;
+  // conditional on if x and y can be added but if they cannot be added then it returns the overflow value
+  return ((xPlusY) & ~overflowMask) | (overflowMask & ((signMask & negOverflow) | (~signMask & posOverflow)));
 }
 /*
  * Extra credit
@@ -333,7 +412,22 @@ int satAdd(int x, int y) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  return 2;
+  // mask the sign bit then check if all exponent bits are set to one
+  unsigned absUf = uf & 0x7fffffff;
+
+  // if the frac bits are some value, the number is NaN. Return it.
+  // Otherwise just return the absolute.
+  if ((absUf & 0x7f800000) ^ 0x7f800000) {
+    return absUf;
+  }
+  else {
+    if (absUf << 9) {
+      return uf;
+    }
+    else {
+      return absUf;
+    }
+  }
 }
 /* 
  * float_f2i - Return bit-level equivalent of expression (int) f
@@ -348,7 +442,32 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  return 2;
+  /* mask out the numerator and the exponent. E can be calculated by subtracting
+   * the bias from exponent. The int is then the fraction bit shifted by 23 - E,
+   * test for E = 0 and it is pretty easy to see (will get 1). The direction of the
+   * shift is chosen based on if 23 - exponent is greater than or less than 0. Next, if E is
+   * less than 0 then the int will always be 0. If E is greater than 30 then overflow
+   * will occur. Finally, if the sign is negative return negative with ~(x) + 1, otherwise
+   * return the first calculated value.
+   */
+  unsigned numerator = (uf & 0x7FFFFF) + 0x800000;
+  int exponent = ((uf & 0x7f800000) >> 23) - 127;
+  int eShift = 23 - exponent;
+  unsigned ufti = numerator;
+
+  if(eShift >= 0)
+    ufti = ufti >> eShift;
+  else
+    ufti = ufti << (~eShift + 1);
+
+  if (exponent < 0)
+    return 0;
+  if (exponent > 30)
+    return 0x80000000;
+  if (uf & 0x80000000)
+    return ~ufti + 1;
+  else 
+    return ufti;
 }
 /* 
  * float_half - Return bit-level equivalent of expression 0.5*f for
@@ -362,5 +481,30 @@ int float_f2i(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_half(unsigned uf) {
-  return 2;
+  /* Mask out relevant terms. Chuck out the case where uf is NaN or inf. Now if the exponent
+   * is greater than one then subtracting one will divid uf by 2. If the exponent is less
+   * or equal to one then the frac can simply be shifted over to the right by one to divide
+   * uf by 2. Note that it is odd that the normalized case of 0000 0001 is grouped with the
+   * denormalized cases, but it makes since E is the same for the denormalized and for 
+   * 0000 0001. A rounder value is added in the case that the fraction needs to be rounded to
+   * even. The case occurs when the two least significant bits are both set to 1.
+   */
+  unsigned fraction = uf & 0x7fffff;
+  unsigned exponent = uf & 0x7f800000;
+  unsigned sign = uf & 0x80000000;
+  unsigned rounder = 0;
+
+  if (!((uf & 0x7f800000) ^ 0x7f800000))
+    return uf;
+
+  if (exponent > 0x800000){
+    return sign + (exponent - 0x800000) + fraction;
+  }
+  else {
+    if ((fraction & 0x3) ^ 0x3)
+      rounder = 0;
+    else
+      rounder = 1;
+    return sign + ((exponent + fraction) >> 1) + rounder;
+  }
 }
