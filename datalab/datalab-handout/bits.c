@@ -497,7 +497,7 @@ unsigned float_half(unsigned uf) {
   if (!((uf & 0x7f800000) ^ 0x7f800000))
     return uf;
 
-  if (exponent > 0x800000){
+  if (exponent > 0x800000) {
     return sign + (exponent - 0x800000) + fraction;
   }
   else {
