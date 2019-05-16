@@ -309,12 +309,13 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
+  int a, b;
   // adds the minimum ascii number to it
-  int a = x + (~0x2f);
+  a = x + (~0x2f);
   // gets last digit of number to see if it is larger than 0x2f
   a = a >> 31;
   // adds maximum ascii number to it
-  int b = 58 + ~x;
+  b = 58 + ~x;
   // gets last digit of number to see if it is less than 0x39
   b = b >> 31;
   // returns 1 if both a and b are 0s
